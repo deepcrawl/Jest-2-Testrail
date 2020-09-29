@@ -25,7 +25,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "testrail": "git://github.com/deepcrawl/Jest-2-Testrail",
+    "testrail": "git://github.com/dlenroc/node-testrail-api",
     "dotenv": "8.0.0",
     "strip-ansi": "5.2.0"
   },
