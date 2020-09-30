@@ -4,6 +4,17 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 const stripAnsi = require('strip-ansi');
 
+let useTestRail = false;
+
+var myArgs = process.argv.slice(2);
+
+myArgs.map((arg) => {
+
+  if(arg === '--testrail=true') {
+    useTestRail = true;
+  }
+});
+
 let envFile = null;
 try {
   envFile = fs.readFileSync('.env');
@@ -78,6 +89,10 @@ class Reporter {
   }
 
   onRunComplete(contexts, results) {
+    if (!useTestRail) { 
+      return;
+    }
+
     const specResults = results.testResults;
     for (let j = 0; j < specResults.length; j += 1) {
       const itResults = specResults[j].testResults;
@@ -85,18 +100,20 @@ class Reporter {
       for (let i = 0; i < itResults.length; i += 1) {
         const result = itResults[i];
         const id = result.title.split(':')[0];
-        const idNum = parseInt(id, 10)
-
-        if (!Number.isInteger(idNum)) {
-          break
+       // const idNum = parseInt(id, 10)
+        const idNum = id.replace(/\D/g,'');
+        // if (!Number.isInteger(idNum)) {
+        //   break
+        // }
+        if (isNaN(idNum)) {
+          break;
         }
-
         this.caseids.push(idNum);
 
         switch (result.status) {
           case 'pending':
             this.testRailResults.push({
-              case_id: parseInt(id, 10),
+              case_id: parseInt(idNum, 10),
               status_id: 2,
               comment: 'Intentionally skipped (xit).',
             });
@@ -104,7 +121,7 @@ class Reporter {
 
           case 'failed':
             this.testRailResults.push({
-              case_id: parseInt(id, 10),
+              case_id: parseInt(idNum, 10),
               status_id: 5,
               comment: stripAnsi(result.failureMessages[0]),
             });
@@ -112,7 +129,7 @@ class Reporter {
 
           case 'passed':
             this.testRailResults.push({
-              case_id: parseInt(id, 10),
+              case_id: parseInt(idNum, 10),
               status_id: 1,
               comment: 'Test passed successfully.',
             });
